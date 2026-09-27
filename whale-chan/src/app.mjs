@@ -18,6 +18,9 @@ import {
   loadMemory,
   memoryDir,
   memoryTail,
+  readState,
+  sessionForCwd,
+  withCwdSession,
   writeState,
 } from './memory.mjs'
 import {
@@ -284,7 +287,14 @@ export class WhaleApp {
   saveSession(extra = {}) {
     if (this.memoryOff) return
     const sessionId = this.agent ? this.agent.sessionId : null
-    writeState(this.memoryDir, { sessionId, cwd: this.cwd, turns: this.turns || 0, ...extra })
+    writeState(this.memoryDir, {
+      sessionId,
+      cwd: this.cwd,
+      turns: this.turns || 0,
+      // 再按目录记一份：换目录时不至于拿别的目录的会话去续，被 dsh 拒掉。
+      byCwd: withCwdSession(readState(this.memoryDir), this.cwd, sessionId, this.turns || 0),
+      ...extra,
+    })
   }
 
   /**
@@ -391,8 +401,10 @@ export class WhaleApp {
     this.canvas.resize(this.stdout.columns || 90, this.stdout.rows || 28)
     // 先把上次的会话接回来：整段历史都还在——她上次读了哪些文件、跑了哪些命令，全都记得。
     const saved = this.memory && this.memory.state
-    if (saved && saved.sessionId && this.agent && !this.agent.sessionId) {
-      this.agent.sessionId = saved.sessionId
+    // ⚠️ 只在「这个目录」的会话才续接：dsh 会拒绝跨目录的 session-id 并直接 code 1。
+    const resumed = sessionForCwd(saved, this.cwd)
+    if (resumed && this.agent && !this.agent.sessionId) {
+      this.agent.sessionId = resumed
     }
     this.noteStickerStatus()
     this.noteCardStatus()
@@ -948,8 +960,43 @@ export class WhaleApp {
     })
   }
 
+  /** 跨目录的废 sessionId 已经丢掉，拿同一句话原样重来一次（不重复记用户那行）。 */
+  retryTurn() {
+    const text = this.turnPrompt
+    if (!text || !this.agent) return false
+    this.retriedTurn = true
+    this.busy = true
+    this.liveText = null
+    this.toolIndex.clear()
+    this.turnTools = []
+    this.reply = ''
+    this.idleSince = Date.now()
+    this.setPhase('thinking')
+    this.seed++
+    this.bubble = pickLine('thinking', this.seed)
+    this.turnStart = Date.now()
+    this.agent.run(text, {
+      onEvent: (event) => this.onAgentEvent(event),
+      onDone: (result) => this.onAgentDone(result),
+    })
+    return true
+  }
+
   onAgentEvent(event) {
     switch (event.type) {
+      case 'error': {
+        // dsh 拒绝跨目录续接会话（旧版本留下的 state.json 会这样）。
+        // 撞上了就把这份 id 丢掉再重来一次，别让人对着「code 1」反复按回车。
+        const message = String(event.message || '')
+        if (/was recorded in/i.test(message)) {
+          if (this.agent) this.agent.sessionId = null
+          this.sessionCwdMismatch = true
+          this.note('这个会话是在别的目录里开的，续不上 —— 已经换成新会话，我重来一次。')
+          return
+        }
+        if (message) this.transcript.push({ kind: 'error', text: message })
+        return
+      }
       case 'text': {
         const text = String(event.text ?? '').trim()
         if (!text) return
@@ -1006,6 +1053,12 @@ export class WhaleApp {
   }
 
   onAgentDone(result) {
+    // 跨目录的废 sessionId：id 已经在 onAgentEvent 里丢掉了，同一句话自动重来一次。
+    if (!result.ok && this.sessionCwdMismatch && !this.retriedTurn) {
+      this.sessionCwdMismatch = false
+      if (this.retryTurn()) return
+    }
+    this.retriedTurn = false
     this.busy = false
     this.liveText = null
     for (const entry of this.transcript) {

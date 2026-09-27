@@ -4,6 +4,25 @@
 `vendor/whale-chan/`，所以扩展版本 == 她本人的版本。**不需要 API Key** —— 她调用的是你
 本机已经登录过的 `dsh`（DeepSeek Harness），凭据在 `~/.dsh/.credentials.yaml`，扩展不碰。
 
+## 1.8.2
+
+- **修一个「换个目录就聊不了」的硬 bug。** `dsh` 拒绝在 A 目录里续接「记在 B 目录」
+  的会话：
+
+  ```
+  {"type":"error","message":"session \"session-xxx\" was recorded in
+   \"C:\\harness\\demo-project\", not \"C:\\Users\\admin\\Desktop\""}
+  ```
+
+  退出码 1，界面上只看到「✗ 智能体退出（code 1）」，一个字的原因都不给。
+  而旧版 `state.json` 只有一个**全局** `sessionId` —— 于是**在 A 项目聊过、
+  换到 B 目录（或换个 IDE 工程、换台电脑）打开，第一句话必然撞墙**。
+- 现在 `state.json` 按目录各记一份会话（最多留最近 12 个目录），续接前先比目录，
+  对不上就老老实实开新会话。另外真收到那条报错时会**自动丢掉废 id 并把同一句话
+  重跑一次**，界面上也会说明一句 —— 不再是一个没有原因的 `code 1`。
+- 新增两个回归测试：`tools/cwd-state-check.mjs`（18 条断言）和
+  `tools/bridge-e2e.mjs <memoryDir> <cwd>`（真开一次桥跑一个回合）。
+
 ## 1.8.1
 
 - **只改了文档，代码一行没动。** 新增「换台电脑 / 装到第二台机器」章节，以及

@@ -23,6 +23,9 @@ import {
   composePersona,
   loadMemory,
   memoryDir as defaultMemoryDir,
+  readState,
+  sessionForCwd,
+  withCwdSession,
   writeState,
 } from './memory.mjs'
 import {
@@ -243,7 +246,11 @@ export function runBridge(options = {}) {
               appendCardLog(character, lines)
               writeCard(character)
             }
-            writeState(memoryDir, { sessionId: agent.sessionId || null, cwd: agent.cwd })
+            writeState(memoryDir, {
+              sessionId: agent.sessionId || null,
+              cwd: agent.cwd,
+              byCwd: withCwdSession(readState(memoryDir), agent.cwd, agent.sessionId || null),
+            })
           } catch {
             /* 写卡失败不该影响这一回合 */
           }
@@ -257,7 +264,11 @@ export function runBridge(options = {}) {
               cwd: agent.cwd,
               ok: result.ok,
             })
-            writeState(memoryDir, { sessionId: agent.sessionId || null, cwd: agent.cwd })
+            writeState(memoryDir, {
+              sessionId: agent.sessionId || null,
+              cwd: agent.cwd,
+              byCwd: withCwdSession(readState(memoryDir), agent.cwd, agent.sessionId || null),
+            })
           } catch {
             /* 记忆写失败不该影响这一回合 */
           }
@@ -478,7 +489,11 @@ export function runBridge(options = {}) {
   }
 
   // 续上一次的会话 + 把人设和记忆挂上去：面板里也必须做，不然「自动读人设」只在终端生效。
-  if (mem && mem.state && mem.state.sessionId) agent.sessionId = mem.state.sessionId
+  // ⚠️ 只续「属于这个目录」的会话：dsh 会拒绝跨目录的 session-id，直接 code 1。
+  if (mem && mem.state) {
+    const resumed = sessionForCwd(mem.state, agent.cwd)
+    if (resumed) agent.sessionId = resumed
+  }
   if (character) {
     try {
       setCardState(character, { sessions_count: (Number(character.state.sessions_count) || 0) + 1 })

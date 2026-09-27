@@ -149,6 +149,62 @@ export function clearState(dir) {
   }
 }
 
+// ------------------------------------------------------- 会话是「一个目录一个」
+
+/**
+ * 会话跟着目录走。dsh **拒绝**在 A 目录里续接「记在 B 目录」的会话：
+ *
+ *   {"type":"error","message":"session \"session-xxx\" was recorded in
+ *    \"C:\\harness\\demo-project\", not \"C:\\Users\\admin\\Desktop\""}   → exit 1
+ *
+ * 所以 state.json 不能只留一个全局 sessionId。只留一个的话，用户在 A 项目聊过、
+ * 换到 B 目录一打开，第一句话必然「智能体退出（code 1）」——换台电脑、
+ * 换个 IDE 工程目录都会撞上。
+ */
+export function normalizeCwd(dir) {
+  let p = String(dir || '').trim()
+  if (!p) return ''
+  p = p.replace(/[\\/]+$/, '')
+  return process.platform === 'win32' ? p.replace(/\//g, '\\').toLowerCase() : p
+}
+
+export function sameCwd(a, b) {
+  const x = normalizeCwd(a)
+  const y = normalizeCwd(b)
+  return Boolean(x) && x === y
+}
+
+/** 取出属于这个目录的会话 id；没有 / 不属于就返回 null（下回开新会话）。 */
+export function sessionForCwd(state, cwd) {
+  if (!state || typeof state !== 'object') return null
+  if (state.sessionId && sameCwd(state.cwd, cwd)) return state.sessionId
+  const map = state.byCwd && typeof state.byCwd === 'object' ? state.byCwd : null
+  const hit = map && map[normalizeCwd(cwd)]
+  return hit && hit.sessionId ? hit.sessionId : null
+}
+
+/** 记住「这个目录的会话」，只留最近 12 个目录，免得 state.json 无限长。 */
+export function withCwdSession(state, cwd, sessionId, turns = 0) {
+  const key = normalizeCwd(cwd)
+  if (!key) return {}
+  const prev = { ...((state && state.byCwd) || {}) }
+  delete prev[key]
+  // 新的放**最前面**：20 个目录在同一毫秒里被碰过时 updatedAt 会打平，
+  // 而 sort 是稳定的 —— 放最后会被当成「最旧」挤掉。
+  const byCwd = {
+    [key]: { cwd: String(cwd), sessionId: sessionId || null, turns, updatedAt: new Date().toISOString() },
+    ...prev,
+  }
+  const keep = Object.keys(byCwd)
+    .sort((a, b) =>
+      String((byCwd[b] || {}).updatedAt || '').localeCompare(String((byCwd[a] || {}).updatedAt || '')),
+    )
+    .slice(0, 12)
+  const out = {}
+  for (const k of keep) out[k] = byCwd[k]
+  return out
+}
+
 // ------------------------------------------------------------------ 人设.md
 
 /**
