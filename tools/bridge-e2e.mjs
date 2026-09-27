@@ -54,7 +54,7 @@ setTimeout(() => child.stdin.write(`${JSON.stringify({ type: 'ask', text: 'åªå›
 
 const deadline = setTimeout(() => {
   child.kill()
-}, 90000)
+}, 240000)
 
 child.on('close', (code) => {
   clearTimeout(deadline)

@@ -8,6 +8,11 @@ whale-chan-dist/
 whale-chan/ide/vscode/vendor/
 tools/pub/
 
+# ---- 便携版（U 盘版）：几百 MB 的运行时副本 + 私人会话记录，绝不能进库 ----
+# 自己造：tools/usb/build-portable.ps1
+# 不排除的话 git add -A 会把 node.exe（89 MB）和 data/sessions/*.zstd 一起提交。
+portable/
+
 # ---- 别人家的代码 ----
 vendor/
 node_modules/

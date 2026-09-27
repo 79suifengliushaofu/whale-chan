@@ -114,6 +114,9 @@ export function runBridge(options = {}) {
   const character = characterInfo.parsed || null
   let turnTools = []
   const callTools = new Map()
+  // 跨目录废 sessionId 的自动重试：同一句话最多重来一次。
+  let crossDirRetried = false
+  let retryPrompt = null
   let userContext = readContext('')
   let turnStart = 0
   let lastActivity = Date.now()
@@ -162,6 +165,10 @@ export function runBridge(options = {}) {
       send({ type: 'error', message: '我还在忙上一条呢…等我一下下嘛。' })
       return
     }
+    // 跨目录废 sessionId 每回合只允许重试一次，否则会无限循环。
+    const isRetry = Boolean(text && retryPrompt === text)
+    if (!isRetry) crossDirRetried = false
+    retryPrompt = text
     userContext = readContext(prompt)
     reply = ''
     turnTools = []
@@ -214,6 +221,23 @@ export function runBridge(options = {}) {
         if (text) send({ type: 'stderr', text: truncate(text, 600) })
       },
       onDone(result) {
+        // 跨目录废 sessionId 的自动重试必须放在**最前面**：
+        // 放在函数末尾的话，前面任何一步抛异常（showCard/readContext/bubble
+        // 都没有各自的 try）都会把重试整段跳过 —— 实测就是这样：探针打出了
+        // ok=false / stderr 里有 "was recorded in"，后面的 debug 却一个字没打。
+        const why = `${(result && result.stderr) || ''} ${(result && result.error) || ''}`
+        if (
+          result &&
+          !result.ok &&
+          !reply &&
+          !crossDirRetried &&
+          /was recorded in/i.test(why)
+        ) {
+          crossDirRetried = true
+          agent.sessionId = null
+          send({ type: 'note', text: '这个会话是在别的目录里开的，续不上 —— 已经换成新会话，我重来一次。' })
+          return ask(text)
+        }
         busy = false
         const elapsed = Date.now() - turnStart
         setPhase(result.ok ? 'done' : 'error')

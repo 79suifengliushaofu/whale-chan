@@ -141,6 +141,9 @@ class BridgeHub {
       this.child = null
       if (!this.stopping) {
         this.broadcast({ type: 'note', text: `后端退出了（code ${code}）。发一句话就会重新起来。` })
+        // 显式补一条 phase:idle：面板的发送键只在 phase/done 上解锁，
+        // 后端死在回合中途时不会有 done，光发 note 会让它永久卡在 busy。
+        this.broadcast({ type: 'phase', phase: 'idle' })
       }
     })
   }

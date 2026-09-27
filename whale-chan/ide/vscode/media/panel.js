@@ -417,10 +417,23 @@ function handleEvent(msg) {
 
     case 'cancelled':
       addRow('note', '好，停下了。')
+      // 「停一下」之后必须能立刻再发——不然停一次就把自己锁死了。
+      release()
       break
 
     case 'error':
       addRow('note', msg.message)
+      // 后端回错误（比如「我还在忙上一条呢」）时也必须解锁：
+      // 这一条不是 done，之前的写法会让发送键永久灰掉。
+      release()
+      break
+
+    // 后端退出 / 宿主提示，都走 note。**之前没有这个 case**，
+    // 于是 bridge 一挂，busy 就永远是 true、发送键永远是灰的——
+    // 表现就是「面板聊不了天，输入框还在但按了没反应」。
+    case 'note':
+      addRow('note', msg.text || msg.message || '')
+      release()
       break
 
     case 'done':
@@ -500,6 +513,13 @@ el.cardLayer.addEventListener('click', (event) => {
 })
 
 // ------------------------------------------------------------------ 输入
+
+/** 解锁发送键：任何「这一回合不会再有 done 了」的路径都必须调它。 */
+function release() {
+  state.busy = false
+  el.send.disabled = false
+  el.stop.disabled = true
+}
 
 function send() {
   const text = el.input.value.trim()
