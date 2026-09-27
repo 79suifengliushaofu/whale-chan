@@ -11,7 +11,9 @@
     "bin",
     "src",
     "assets",
-    "ide",
+    "ide/bin",
+    "ide/jetbrains",
+    "ide/setup.mjs",
     "LICENSE",
     "ASSETS-NOTICE.md",
     "README.md"
