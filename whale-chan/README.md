@@ -73,15 +73,29 @@
 
 ## 30 秒上手
 
+**最省事的一行** —— 不用 clone、不用装，直接从 npm 拉下来跑：
+
 ```powershell
-# 1) 在 IDE 的集成终端里，一行搞定
+npx whale-chan
+```
+
+想装到全局、以后随处喊她：
+
+```powershell
+npm i -g whale-chan
+whalechan
+```
+
+从源码跑（改了代码想立刻看效果时用这个）：
+
+```powershell
 node C:\harness\whale-chan\bin\whalechan.mjs
 ```
 
 如果本机没装 DeepSeek Harness，先看看界面长什么样：
 
 ```powershell
-node C:\harness\whale-chan\bin\whalechan.mjs --demo
+npx whale-chan --demo
 ```
 
 想在任何目录里随口喊她，就把它挂到 PATH（`ide\bin\whalechan.cmd` 已经写好了相对路径）：
