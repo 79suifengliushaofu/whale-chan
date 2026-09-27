@@ -1,0 +1,30 @@
+# 仓库根就是 C:\harness，所以这里排掉的全是「构建产物 / 别人家代码 / 我自己的草稿」。
+#
+# 注意：.gitignore **不支持行尾注释** —— 写成 `vendor/   # 说明` 的话，
+# 整行会被当成一个含空格的路径模式，等于什么都没排除。（我自己踩过这一脚。）
+
+# ---- 构建产物：由 tools/ 现造，不进库 ----
+whale-chan-dist/
+whale-chan/ide/vscode/vendor/
+tools/pub/
+
+# ---- 别人家的代码 ----
+vendor/
+node_modules/
+
+# ---- 我自己的草稿与外部素材 ----
+表情包/
+demo-project/
+probe-dsh.txt
+tools/headless-config.err
+tools/headless-config.yml
+tools/probe-patch.yml
+tools/probe-patched.yml
+tools/probe-plain.yml
+
+# ---- 通用 ----
+__pycache__/
+*.pyc
+*.vsix
+.DS_Store
+Thumbs.db

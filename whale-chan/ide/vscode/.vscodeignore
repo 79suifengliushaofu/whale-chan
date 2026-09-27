@@ -1,0 +1,9 @@
+# vsce package 时不要塞进 vsix 的东西。
+# 注意：vendor/ 里是自包含的运行时，**必须留着** —— 扩展找不到本机 CLI 时靠它兜底。
+
+.vscodeignore
+*.vsix
+node_modules/
+**/*.map
+**/.DS_Store
+Thumbs.db

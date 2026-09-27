@@ -1,0 +1,28 @@
+{
+  "source": "whale-girl sprite atlas (2026-08-13 build)",
+  "cellWidth": 60,
+  "cellHeight": 68,
+  "columns": 8,
+  "rows": [
+    "idle",
+    "running-right",
+    "running-left",
+    "waving",
+    "jumping",
+    "failed",
+    "waiting",
+    "running",
+    "review"
+  ],
+  "frames": [
+    6,
+    8,
+    8,
+    4,
+    5,
+    8,
+    6,
+    6,
+    6
+  ]
+}

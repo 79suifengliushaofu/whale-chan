@@ -1,0 +1,224 @@
+{
+  "name": "whale-chan-terminal",
+  "displayName": "鲸鱼娘终端 (Whale Chan)",
+  "description": "在集成终端和侧边面板里养一只会干活的鲸鱼娘：能聊天，也能替你跑命令、改代码。不需要 API Key —— 用的是你本机已登录的 dsh。",
+  "version": "1.8.0",
+  "publisher": "whale-chan",
+  "license": "MIT",
+  "author": {
+    "name": "whale-chan contributors"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/79suifengliushaofu/whale-chan.git"
+  },
+  "homepage": "https://github.com/79suifengliushaofu/whale-chan#readme",
+  "bugs": {
+    "url": "https://github.com/79suifengliushaofu/whale-chan/issues"
+  },
+  "qna": "https://github.com/79suifengliushaofu/whale-chan/issues",
+  "galleryBanner": {
+    "color": "#0d1424",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "terminal",
+    "agent",
+    "chat",
+    "whale",
+    "dsh",
+    "deepseek",
+    "desktop pet",
+    "桌宠",
+    "鲸鱼娘"
+  ],
+  "main": "./extension.js",
+  "icon": "icon.png",
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:whaleChan.view"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "restrictedConfigurations": [
+        "whaleChan.cliPath",
+        "whaleChan.nodePath",
+        "whaleChan.stickers",
+        "whaleChan.vsixPath",
+        "whaleChan.extensionId"
+      ]
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "鲸鱼娘要在本地终端里启动 node 进程。"
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "whaleChan.open",
+        "title": "在终端里打开鲸鱼娘",
+        "category": "鲸鱼娘"
+      },
+      {
+        "command": "whaleChan.openPanel",
+        "title": "打开鲸鱼娘面板（真彩，推荐）",
+        "category": "鲸鱼娘"
+      },
+      {
+        "command": "whaleChan.pat",
+        "title": "摸摸头",
+        "category": "鲸鱼娘"
+      },
+      {
+        "command": "whaleChan.askSelection",
+        "title": "把选中的内容交给她",
+        "category": "鲸鱼娘"
+      },
+      {
+        "command": "whaleChan.askFile",
+        "title": "让她看看当前文件",
+        "category": "鲸鱼娘"
+      },
+      {
+        "command": "whaleChan.detectIdes",
+        "title": "检测这台电脑上的编辑器",
+        "category": "鲸鱼娘"
+      },
+      {
+        "command": "whaleChan.setupIdes",
+        "title": "把鲸鱼娘配到其他编辑器里",
+        "category": "鲸鱼娘"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "whaleChan.open",
+        "key": "ctrl+alt+w",
+        "mac": "cmd+alt+w"
+      },
+      {
+        "command": "whaleChan.openPanel",
+        "key": "ctrl+alt+shift+w",
+        "mac": "cmd+alt+shift+w"
+      }
+    ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "whaleChan.container",
+          "title": "鲸鱼娘",
+          "icon": "media/whale.svg"
+        }
+      ]
+    },
+    "views": {
+      "whaleChan.container": [
+        {
+          "type": "webview",
+          "id": "whaleChan.view",
+          "name": "鲸鱼娘"
+        }
+      ]
+    },
+    "terminal": {
+      "profiles": [
+        {
+          "id": "whaleChan.profile",
+          "title": "鲸鱼娘"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "whaleChan.askSelection",
+          "when": "editorHasSelection",
+          "group": "whaleChan@1"
+        }
+      ],
+      "terminal/title/context": [
+        {
+          "command": "whaleChan.open",
+          "group": "whaleChan@1"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "whaleChan.pat",
+          "when": "view == whaleChan.view",
+          "group": "navigation@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "鲸鱼娘",
+      "properties": {
+        "whaleChan.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "whalechan 入口文件 (bin/whalechan.mjs) 的绝对路径。留空则自动查找。"
+        },
+        "whaleChan.nodePath": {
+          "type": "string",
+          "default": "",
+          "description": "用来运行鲸鱼娘的 node 可执行文件路径。留空则自动查找。"
+        },
+        "whaleChan.profile": {
+          "type": "string",
+          "default": "headless",
+          "description": "DeepSeek Harness profile 名称。"
+        },
+        "whaleChan.permission": {
+          "type": "string",
+          "enum": [
+            "read-only",
+            "workspace-write",
+            "danger-full-access"
+          ],
+          "default": "danger-full-access",
+          "description": "鲸鱼娘的沙箱权限。headless 没有审批通道，只有 danger-full-access 才能真的读写文件、执行命令。"
+        },
+        "whaleChan.stickers": {
+          "type": "string",
+          "default": "",
+          "description": "表情包目录的绝对路径。留空则自动找 <工作区>/表情包、<上一级>/表情包、~/表情包。"
+        },
+        "whaleChan.vsixPath": {
+          "type": "string",
+          "default": "",
+          "description": "给其他 VS Code 家族编辑器（Cursor / Windsurf / VSCodium…）安装时用的 .vsix 路径。留空则使用下面的扩展 ID。"
+        },
+        "whaleChan.extensionId": {
+          "type": "string",
+          "default": "whale-chan.whale-chan-terminal",
+          "description": "从插件市场给其他编辑器安装时用的扩展 ID。"
+        },
+        "whaleChan.autoDetectIdes": {
+          "type": "boolean",
+          "default": true,
+          "description": "首次启动时自动扫一遍这台电脑上还装了哪些编辑器，并询问要不要一起配上。"
+        },
+        "whaleChan.followFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "她写/改文件时，自动在编辑器里把那个文件露出来（不抢输入焦点）。关掉的话仍然会刷新资源管理器，只是不自动打开。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build:vsix": "node ../../tools/build-vsix.mjs",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "publish:ovsx": "ovsx publish"
+  }
+}

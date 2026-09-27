@@ -1,0 +1,10 @@
+# 换行统一成 LF。Windows 上 git 默认 autocrlf=true 会把 .mjs / .sh / .py 全变成 CRLF，
+# 而 ide/bin/whalechan 是个 sh 脚本 —— CRLF 会让它在 Linux / macOS 上直接报
+# `/usr/bin/env: 'sh\r': No such file or directory`。
+* text=auto eol=lf
+
+# 这几种本来就该是二进制，别让 git 去「规范化」它们。
+*.png binary
+*.vsix binary
+*.ttf binary
+*.ico binary

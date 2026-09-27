@@ -1,0 +1,15 @@
+{
+  "cell": 128,
+  "columns": 6,
+  "rows": 1,
+  "order": [
+    "idle",
+    "blink",
+    "joy0",
+    "joy1",
+    "cheer",
+    "oops"
+  ],
+  "skin": "#ffede6",
+  "source": "dsh-whale-widget/assets/DSniang1.png"
+}

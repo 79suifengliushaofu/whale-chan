@@ -1,0 +1,5 @@
+#!/bin/sh
+# 在任何 IDE 的终端里敲 `whalechan` 就唤醒鲸鱼娘。
+# 把它所在的目录加进 PATH 即可：export PATH="/path/to/whale-chan/ide/bin:$PATH"
+HERE=$(cd "$(dirname "$0")" && pwd)
+exec node "$HERE/../../bin/whalechan.mjs" "$@"

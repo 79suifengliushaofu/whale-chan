@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  鲸鱼娘的 JetBrains (PyCharm / IDEA / WebStorm / CLion / GoLand …) External Tools。
+
+  合并方法：
+    1. 关闭 IDE；
+    2. 打开 <配置目录>\tools\External Tools.xml
+       （Windows 一般是 %APPDATA%\JetBrains\<产品><版本>\tools\External Tools.xml；
+        如果文件不存在就新建一个，根节点用 <toolSet name="External Tools">…</toolSet>）；
+    3. 把下面 <tool> 两个节点粘进 <toolSet> 里，重启 IDE；
+    4. 编辑器 / 项目树右键 ▸ External Tools 就能看到。
+
+  注意：「问这个文件」是 --once，跑完把答案打到控制台，适合随手一问。
+        「开一个终端」想交互就直接用内置 Terminal（Alt+F12）敲 whalechan ——
+        那是真 PTY，External Tools 的控制台不是。
+-->
+<toolSet name="External Tools">
+  <tool name="鲸鱼娘：问这个文件" description="把当前文件交给鲸鱼娘看一眼" showInMainMenu="false" showInEditor="true" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="true" showConsoleOnStdErr="true" synchronizeAfterRun="false">
+    <exec>
+      <option name="COMMAND" value="node" />
+      <option name="PARAMETERS" value="C:\harness\whale-chan\bin\whalechan.mjs --once &quot;请读一下 $FilePathRelativeToProjectRoot$，说明它的作用，并指出可以改进的地方。&quot;" />
+      <option name="WORKING_DIRECTORY" value="$ProjectFileDir$" />
+    </exec>
+  </tool>
+  <tool name="鲸鱼娘：跑一个任务…" description="弹窗输入任务，交给鲸鱼娘执行" showInMainMenu="true" showInEditor="false" showInProject="true" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="true" showConsoleOnStdErr="true" synchronizeAfterRun="false">
+    <exec>
+      <option name="COMMAND" value="node" />
+      <option name="PARAMETERS" value="C:\harness\whale-chan\bin\whalechan.mjs --once &quot;$Prompt$&quot;" />
+      <option name="WORKING_DIRECTORY" value="$ProjectFileDir$" />
+    </exec>
+    <prompt>
+      <option name="text" value="想让鲸鱼娘做什么？" />
+      <option name="parameterName" value="Prompt" />
+    </prompt>
+  </tool>
+</toolSet>
