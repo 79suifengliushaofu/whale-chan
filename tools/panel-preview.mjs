@@ -8,9 +8,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const PKG = 'C:/harness/whale-chan'
+const ROOT = path.resolve(import.meta.dirname, '..')
+const PKG = path.join(ROOT, 'whale-chan')
 const MEDIA = path.join(PKG, 'ide', 'vscode', 'media')
-const OUT = process.argv[2] || 'C:/harness/whale-chan-dist/panel-preview.html'
+const OUT = process.argv[2] || path.join(ROOT, 'whale-chan-dist', 'panel-preview.html')
 
 const css = fs.readFileSync(path.join(MEDIA, 'panel.css'), 'utf8')
 const js = fs.readFileSync(path.join(MEDIA, 'panel.js'), 'utf8')

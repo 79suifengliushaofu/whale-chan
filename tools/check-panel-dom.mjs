@@ -7,11 +7,13 @@
 //   node tools/check-panel-dom.mjs
 
 import fs from 'node:fs'
+import path from 'node:path'
 
-const ROOT = 'C:/harness/whale-chan/ide/vscode'
-const js = fs.readFileSync(`${ROOT}/media/panel.js`, 'utf8')
-const webview = fs.readFileSync(`${ROOT}/webview.js`, 'utf8')
-const preview = fs.readFileSync('C:/harness/tools/panel-preview.mjs', 'utf8')
+const HERE = import.meta.dirname
+const ROOT = path.resolve(HERE, '..', 'whale-chan', 'ide', 'vscode')
+const js = fs.readFileSync(path.join(ROOT, 'media', 'panel.js'), 'utf8')
+const webview = fs.readFileSync(path.join(ROOT, 'webview.js'), 'utf8')
+const preview = fs.readFileSync(path.join(HERE, 'panel-preview.mjs'), 'utf8')
 
 const used = [...new Set([...js.matchAll(/getElementById\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]))].sort()
 const has = (src, id) => new RegExp(`id=["']${id}["']`).test(src)

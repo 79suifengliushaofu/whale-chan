@@ -5,7 +5,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
 
-const ROOT = 'C:/harness'
+// 仓库根 = 这个文件所在目录的上一级。**不要写死 C:/harness** ——
+// 写死了在 GitHub Actions 的 runner 上就会 ENOENT，而且报错信息只说你缺一个
+// package.json，完全看不出是路径写死的问题。
+const ROOT = path.resolve(import.meta.dirname, '..')
 const PKG = path.join(ROOT, 'whale-chan')
 const EXT_DIR = path.join(PKG, 'ide', 'vscode')
 const DIST = path.join(ROOT, 'whale-chan-dist')

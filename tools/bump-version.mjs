@@ -2,6 +2,7 @@
 // 用法：node tools/bump-version.mjs 1.2.1
 
 import fs from 'node:fs'
+import path from 'node:path'
 
 const next = process.argv[2]
 if (!/^\d+\.\d+\.\d+/.test(next || '')) {
@@ -9,7 +10,7 @@ if (!/^\d+\.\d+\.\d+/.test(next || '')) {
   process.exit(1)
 }
 
-const root = 'C:/harness/whale-chan'
+const root = path.resolve(import.meta.dirname, '..', 'whale-chan')
 const files = [`${root}/package.json`, `${root}/ide/vscode/package.json`]
 for (const f of files) {
   const j = JSON.parse(fs.readFileSync(f, 'utf8'))
