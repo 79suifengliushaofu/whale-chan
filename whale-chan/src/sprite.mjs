@@ -302,6 +302,28 @@ export function enhanceFrame(frame, { sharpen = 0.95, saturate = 1.25, contrast 
 }
 
 /**
+ * 按「缩了多少倍」调增强参数。
+ *
+ * 源图 126px 降到 60px（宽面板）时，Lanczos 只平均掉一点点；降到 20px
+ * （窄面板）时同样一颗眼睛只剩两三个像素，固定参数就压不住那片灰 ——
+ * 表现就是「面板一窄，脸就糊了」。缩得越狠，锐化/对比/饱和补得越多。
+ *
+ * 斜坡从 2.6× 才开始：宽面板大约就是 3.4×，那里只能轻轻补一点，
+ * 否则脸会变得又硬又假 —— 修窄屏不能拿宽屏当代价。
+ *
+ * @param {number} ratio 源尺寸 / 输出尺寸（>1 表示在缩小）
+ * @param {{sharpen:number,saturate:number,contrast:number}} base 1:1 附近的基准值
+ */
+export function enhanceFor(ratio, base = { sharpen: 0.95, saturate: 1.25, contrast: 1.14 }) {
+  const t = Math.max(0, Math.min(1, (ratio - 2.6) / 2.9)) // 2.6× 起补，5.5× 补满
+  return {
+    sharpen: base.sharpen + 0.55 * t,
+    saturate: base.saturate + 0.16 * t,
+    contrast: base.contrast + 0.10 * t,
+  }
+}
+
+/**
  * 把一帧画到画布上：每个终端单元格放上下两个像素，用 "▀" 呈现。
  * 半透明像素与面板底色合成，所以整块面板永远是不透明的，观感稳定。
  */
@@ -433,7 +455,8 @@ export function getQFrameFit(name, maxW, maxH, assetDir = ASSETS) {
   const hit = frameCache.get(key)
   if (hit) return hit
   const rect = { x: index * cell + bounds.x, y: bounds.y, width: bounds.width, height: bounds.height }
-  const out = enhanceFrame({ width: outW, height: outH, data: scaleRegion(sheet, rect, outW, outH) })
+  const fit = enhanceFor(bounds.width / outW)
+  const out = enhanceFrame({ width: outW, height: outH, data: scaleRegion(sheet, rect, outW, outH) }, fit)
   frameCache.set(key, out)
   return out
 }
@@ -480,7 +503,11 @@ export function getStickerFit(file, maxW, maxH) {
   if (outH % 2) outH -= 1
   if (outH < 2) outH = 2
   const data = scaleRegion(sheet, rect, outW, outH)
-  const out = { width: outW, height: outH, data }
+  // 表情包是主人自己的图 —— 只补锐化，不动饱和度与对比度，免得把原图改味。
+  const out = enhanceFrame(
+    { width: outW, height: outH, data },
+    enhanceFor(rect.width / outW, { sharpen: 0.6, saturate: 1, contrast: 1 }),
+  )
   stickerCache.set(key, out)
   return out
 }
