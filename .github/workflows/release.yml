@@ -1,11 +1,13 @@
-# 打一个 v* 的 tag，这个工作流会把三样东西一起发出去：
-#   ① VS Code Marketplace（vsce）  ② Open VSX（ovsx）  ③ npm（OIDC 受信发布，带 provenance）
+# 打一个 v* 的 tag，这个工作流会：
+#   ① 建 GitHub Release，并把 .vsix 挂上去（**这一步永远会跑**）
+#   ② 有 secret 才发对应商店 —— 缺哪个就跳过哪个，不会把整条流水线拖红
+#      VSCE_PAT   Microsoft Marketplace（Azure DevOps 的 PAT，scope 勾 Marketplace: Manage）
+#      OVSX_PAT   open-vsx.org 的 token
+#   ③ npm 走 **OIDC 受信发布**，不需要任何 secret；但要在 npmjs.com 上把本仓库登记成
+#      Trusted Publisher、并把仓库变量 NPM_PUBLISH 设成 on 之后才会跑。
 #
-# 需要先在仓库 Settings ▸ Secrets and variables ▸ Actions 里放两个 secret：
-#   VSCE_PAT   —— Azure DevOps 的 Personal Access Token（scope 勾 Marketplace: Manage）
-#   OVSX_PAT   —— open-vsx.org 的 token（`ovsx create-namespace <publisher>` 之后拿）
-# npm 那一步**不需要 secret**：它用 GitHub 的 OIDC 身份，第一次发布前要在
-# npmjs.com 的包设置里把本仓库登记成 Trusted Publisher。
+# 为什么 npm 要单独一个开关：2027-01 起 npm 会取消「绕过 2FA 的 token 直接发布」，
+# 官方指定替代就是 OIDC 受信发布 —— 所以这条路是往前看的，不是权宜之计。
 
 name: release
 
@@ -30,6 +32,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: 版本号必须跟 tag 对得上
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           TAG="${GITHUB_REF_NAME#v}"
           PKG=$(node -p "require('./whale-chan/package.json').version")
@@ -45,22 +48,26 @@ jobs:
       - name: 打包 vsix
         run: node tools/build-vsix.mjs
 
-      - name: 发到 VS Code Marketplace
-        run: npx --yes @vscode/vsce publish --packagePath whale-chan-dist/whale-chan-terminal-*.vsix
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-      - name: 发到 Open VSX
-        run: npx --yes ovsx publish whale-chan-dist/whale-chan-terminal-*.vsix
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-
-      - name: 发到 npm
-        working-directory: whale-chan
-        run: npm publish --provenance --access public
-
+      # 先把 Release 建出来 —— 就算后面某个商店发失败了，包也已经能下载了。
       - name: 建 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: whale-chan-dist/whale-chan-terminal-*.vsix
           generate_release_notes: true
+
+      - name: 发到 VS Code Marketplace
+        if: ${{ secrets.VSCE_PAT != '' }}
+        run: npx --yes @vscode/vsce publish --packagePath whale-chan-dist/whale-chan-terminal-*.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: 发到 Open VSX
+        if: ${{ secrets.OVSX_PAT != '' }}
+        run: npx --yes ovsx publish whale-chan-dist/whale-chan-terminal-*.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+      - name: 发到 npm
+        if: ${{ vars.NPM_PUBLISH == 'on' }}
+        working-directory: whale-chan
+        run: npm publish --provenance --access public
