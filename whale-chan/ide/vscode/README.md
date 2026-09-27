@@ -16,10 +16,25 @@
 
 ## 安装
 
+**① 从 Open VSX 装**（VSCodium / Cursor / Windsurf / Trae / Gitpod / code-server —— 都从这个源拉扩展）
+
+扩展面板里（`Ctrl+Shift+X`）搜 **`鲸鱼娘`** 或 **`Whale Chan`**；或直接打开扩展页：
+
+<https://open-vsx.org/extension/whale-chan/whale-chan-terminal>
+
+> 刚发布时页面会挂一个 `verified: false` 的黄标 —— 那是 Open VSX 在**异步做签名校验**，
+> 几分钟后自己消失，**不影响安装和使用**。
+
+**② 手动装 vsix**（官方版 VS Code 走这条，原因见下）
+
 ```powershell
-code --install-extension C:\harness\whale-chan-dist\whale-chan-terminal-1.7.1.vsix
+code --install-extension C:\harness\whale-chan-dist\whale-chan-terminal-1.8.0.vsix
 ```
 
+> 微软的 VS Code Marketplace 目前**建发布者要绑 Azure 订阅**
+> （[官方答复](https://learn.microsoft.com/en-sg/answers/questions/5964239/existing-vs-code-marketplace-publisher-cannot-gene)），
+> 所以官方 VS Code 的扩展面板里暂时搜不到鲸鱼娘，只能拿 vsix 手动装。
+>
 > 装完**必须重载窗口**（`Ctrl+Shift+P` → Developer: Reload Window）。
 > 而且 `code --install-extension` 在**版本号相同**时不会重新解包 —— 升级时版本号一定要变。
 

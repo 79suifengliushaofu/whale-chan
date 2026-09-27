@@ -1,5 +1,10 @@
 # 鲸鱼娘 · Whale-chan
 
+[![npm](https://img.shields.io/npm/v/whale-chan)](https://www.npmjs.com/package/whale-chan)
+[![Open VSX](https://img.shields.io/open-vsx/v/whale-chan/whale-chan-terminal)](https://open-vsx.org/extension/whale-chan/whale-chan-terminal)
+[![Open VSX 下载量](https://img.shields.io/open-vsx/dt/whale-chan/whale-chan-terminal)](https://open-vsx.org/extension/whale-chan/whale-chan-terminal)
+[![GitHub release](https://img.shields.io/github/v/release/79suifengliushaofu/whale-chan)](https://github.com/79suifengliushaofu/whale-chan/releases)
+
 > 一个住在编译器终端里的 Q 版鲸鱼娘。她能像 agent 一样在你机器上干活，也记得住你。
 
 ![终端里的鲸鱼娘](docs/preview.png)
@@ -15,7 +20,7 @@
 | 形态 | 怎么用 | 需要什么 |
 | --- | --- | --- |
 | **终端界面** | `node whale-chan/bin/whalechan.mjs` | 只要 Node ≥ 18 |
-| **VS Code 面板** | 装 `whale-chan-dist/*.vsix`，`Ctrl+Alt+W` | VS Code ≥ 1.84 |
+| **VS Code 面板** | 从 [**Open VSX**](https://open-vsx.org/extension/whale-chan/whale-chan-terminal) 装（Cursor/Windsurf/Trae/VSCodium 都能搜到），或装 `whale-chan-dist/*.vsix`，`Ctrl+Alt+W` | VS Code ≥ 1.84 |
 | **单次任务** | `whalechan --once "把 src/ 里的 console.log 换成 logger"` | 同上 |
 
 她背后调的是 `dsh --profile headless --json`——**复用你本机已经登录的 dsh**，

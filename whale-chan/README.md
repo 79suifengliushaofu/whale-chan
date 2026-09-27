@@ -1,5 +1,11 @@
 # 🐋 whale-chan · 鲸鱼娘终端
 
+[![npm](https://img.shields.io/npm/v/whale-chan)](https://www.npmjs.com/package/whale-chan)
+[![Open VSX](https://img.shields.io/open-vsx/v/whale-chan/whale-chan-terminal)](https://open-vsx.org/extension/whale-chan/whale-chan-terminal)
+[![Open VSX 下载量](https://img.shields.io/open-vsx/dt/whale-chan/whale-chan-terminal)](https://open-vsx.org/extension/whale-chan/whale-chan-terminal)
+[![GitHub release](https://img.shields.io/github/v/release/79suifengliushaofu/whale-chan)](https://github.com/79suifengliushaofu/whale-chan/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > 在**任何编译器 / IDE 的集成终端**里养一只鲸鱼娘。
 > 她会用 2D 像素形象住在终端的一块面板里，可以跟她聊天，
 > 也可以让她**替你动手**——跑命令、改文件、装依赖、看日志，
@@ -104,6 +110,27 @@ npx whale-chan --demo
 $env:PATH = "C:\harness\whale-chan\ide\bin;$env:PATH"
 whalechan
 ```
+
+---
+
+## 装进 IDE（不用碰命令行）
+
+**VSCodium / Cursor / Windsurf / Trae / Gitpod / code-server** —— 这些编辑器都从
+**Open VSX** 拉扩展（微软的 Marketplace 不给他们授权）：
+
+1. 打开扩展面板（`Ctrl+Shift+X`）
+2. 搜 **`鲸鱼娘`** 或 **`Whale Chan`**
+3. 装完 **重载窗口**（`Ctrl+Shift+P` → Developer: Reload Window）
+4. 左侧活动栏多一个鲸鱼图标；`Ctrl+Alt+Shift+W` 开真彩面板，`Ctrl+Alt+W` 开终端版
+
+扩展页：<https://open-vsx.org/extension/whale-chan/whale-chan-terminal>
+
+> **刚发布时页面上有个 `verified: false` 的黄标** —— 那是 Open VSX 在异步做签名校验，
+> 几分钟后自己就没了，**不影响安装和使用**。
+
+**官方版 VS Code** 目前只能手动装 vsix —— 微软的 Marketplace 要求建发布者时绑一个
+Azure 订阅（[官方答复](https://learn.microsoft.com/en-sg/answers/questions/5964239/existing-vs-code-marketplace-publisher-cannot-gene)），
+这条暂时走不通。见 [`ide/vscode/README.md`](ide/vscode/README.md)。
 
 ---
 
