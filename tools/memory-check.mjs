@@ -73,6 +73,22 @@ try {
   clearState(dir)
   check('clearState 之后读不到上次会话', readState(dir) === null)
 
+  // ---- 同一段 cwd，两个平台必须写出同一个标签 ----
+  // 这条是回归锁：以前用 path.basename(cwd)，于是在 Windows 上写「· demo-project」、
+  // 在 Linux 上写「· C:\harness\demo-project」—— 记忆文件是跟着人在两台机器之间走的。
+  {
+    const d2 = fs.mkdtempSync(path.join(os.tmpdir(), 'whale-mem-x-'))
+    appendMemory(d2, { prompt: 'a', cwd: 'C:\\harness\\demo-project' })
+    appendMemory(d2, { prompt: 'b', cwd: '/home/admin/demo-project' })
+    appendMemory(d2, { prompt: 'c', cwd: 'demo-project' })
+    const titles = readMemory(d2).split('\n').filter((line) => line.startsWith('### '))
+    check(
+      'Windows 与 POSIX 的 cwd 写出同一个标签',
+      titles.length === 3 && titles.every((line) => line.endsWith('· demo-project')),
+      JSON.stringify(titles),
+    )
+  }
+
   // ---- 记忆流水
   check('空目录里 memoryCount 是 0', memoryCount(dir) === 0)
   appendMemory(dir, { prompt: '帮我把 console.log 换掉', reply: '换好了哼。', tools: ['pwsh', 'read'], cwd: 'C:\\harness\\demo-project' })

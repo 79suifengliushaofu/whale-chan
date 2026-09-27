@@ -209,7 +209,11 @@ function clip(text, max = ENTRY_CLIP) {
  * 只记「主人要什么 / 她干了什么 / 用了哪些工具」，不记全文——全文在会话历史里。
  */
 export function appendMemory(dir, { prompt, reply, tools, when = new Date(), cwd, manual } = {}) {
-  const parts = [`### ${formatWhen(when)}${cwd ? ` · ${path.basename(cwd)}` : ''}`]
+  // 不用 path.basename：它只认当前系统的分隔符，于是同一条记忆在 Windows 上写
+  // 「· demo-project」、在 Linux 上写「· C:\harness\demo-project」。记忆文件是要跟着
+  // 人在两台机器之间走的，所以标签必须跟平台无关。
+  const folder = cwd ? String(cwd).split(/[\\/]/).filter(Boolean).pop() || '' : ''
+  const parts = [`### ${formatWhen(when)}${folder ? ` · ${folder}` : ''}`]
   const ask = clip(prompt)
   const said = clip(reply)
   const did = Array.isArray(tools) ? [...new Set(tools)].slice(0, 6).join(', ') : ''

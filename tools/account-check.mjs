@@ -27,10 +27,15 @@ if (cred) {
   // 只报来源、长度、前缀，绝不报全文
   process.stdout.write(`凭据来源：${cred.source} · 长度 ${cred.key.length} · 前缀 ${cred.key.slice(0, 3)}…\n`)
 } else {
-  process.stdout.write('凭据：没找到\n')
+  process.stdout.write('凭据：没找到（CI 上没有凭据，下面依赖凭据的几条会自动跳过）\n')
 }
-ok('能读到 DEEPSEEK_API_KEY', Boolean(cred))
-ok('密钥不是空的', Boolean(cred && cred.key.length > 10))
+if (cred) {
+  ok('能读到 DEEPSEEK_API_KEY', true)
+  ok('密钥不是空的', cred.key.length > 10)
+} else {
+  process.stdout.write('SKIP  能读到 DEEPSEEK_API_KEY（没凭据）\n')
+  process.stdout.write('SKIP  密钥不是空的（没凭据）\n')
+}
 
 // --- 峰谷规则 ---
 const at = (y, mo, d, h, mi = 0) => Math.floor(Date.UTC(y, mo - 1, d, h - 8, mi) / 1000) // 北京时间 → epoch
@@ -73,15 +78,22 @@ ok('formatMoney 两位小数', formatMoney(12.3456) === '¥12.35', formatMoney(1
 ok('formatMoney 非法值给破折号', formatMoney(null) === '—')
 
 // --- 真实余额请求（会走网络） ---
-const bal = await fetchBalance({ force: true })
-if (bal.ok) {
-  process.stdout.write(`余额：${formatMoney(bal.totalBalance, bal.currency)} ${bal.currency}（来源 ${bal.source}）\n`)
+// 没凭据就跳过：CI 上没有主人的密钥，硬跑只会让整条流水线变红，
+// 而这跟代码对不对没有任何关系。峰谷/计费那些纯计算的断言上面已经全测过了。
+if (cred) {
+  const bal = await fetchBalance({ force: true })
+  if (bal.ok) {
+    process.stdout.write(`余额：${formatMoney(bal.totalBalance, bal.currency)} ${bal.currency}（来源 ${bal.source}）\n`)
+  } else {
+    process.stdout.write(`余额：失败 ${bal.code} — ${bal.error}\n`)
+  }
+  ok('余额请求成功', bal.ok, bal.error || '')
+  ok('余额是有限数', bal.ok && Number.isFinite(bal.totalBalance))
+  process.stdout.write(`状态栏一行：${accountLine({ balance: bal })}\n`)
 } else {
-  process.stdout.write(`余额：失败 ${bal.code} — ${bal.error}\n`)
+  process.stdout.write('SKIP  余额请求（没凭据，不联网）\n')
+  process.stdout.write('SKIP  余额是有限数（没凭据，不联网）\n')
 }
-ok('余额请求成功', bal.ok, bal.error || '')
-ok('余额是有限数', bal.ok && Number.isFinite(bal.totalBalance))
-process.stdout.write(`状态栏一行：${accountLine({ balance: bal })}\n`)
 
 process.stdout.write(bad === 0 ? '\n全部通过 ✅\n' : `\n${bad} 项失败 ❌\n`)
 process.exitCode = bad === 0 ? 0 : 1
