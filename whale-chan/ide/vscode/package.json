@@ -2,7 +2,7 @@
   "name": "whale-chan-terminal",
   "displayName": "鲸鱼娘终端 (Whale Chan)",
   "description": "在集成终端和侧边面板里养一只会干活的鲸鱼娘：能聊天，也能替你跑命令、改代码。不需要 API Key —— 用的是你本机已登录的 dsh。",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "publisher": "whale-chan",
   "license": "MIT",
   "author": {
