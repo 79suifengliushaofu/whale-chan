@@ -98,11 +98,13 @@ whalechan
 node C:\harness\whale-chan\bin\whalechan.mjs
 ```
 
-如果本机没装 DeepSeek Harness，先看看界面长什么样：
+如果本机没装 DeepSeek Harness（她只是壳，真正干活的是它），先看看界面长什么样 —— 不装也能跑：
 
 ```powershell
 npx whale-chan --demo
 ```
+
+**要真的用起来得先装 `dsh`** —— 见下面的「换台电脑 / 装到第二台机器」。
 
 想在任何目录里随口喊她，就把它挂到 PATH（`ide\bin\whalechan.cmd` 已经写好了相对路径）：
 
@@ -110,6 +112,79 @@ npx whale-chan --demo
 $env:PATH = "C:\harness\whale-chan\ide\bin;$env:PATH"
 whalechan
 ```
+
+---
+
+## 换台电脑 / 装到第二台机器（必读）
+
+**鲸鱼娘自己不会连 DeepSeek。** 她只是一个终端界面 —— 真正说话、跑命令、改文件的是你本机
+**已经登录过**的 `dsh`（DeepSeek Harness）。所以换机器时，**先让 `dsh` 能干活**，她才有命。
+
+### 三步
+
+```powershell
+# 1. 装 dsh —— 她是壳，dsh 才是命
+npm i -g @deepseek-ai/dsh
+
+# 2. 给凭证（二选一，A 推荐）
+#    A. 环境变量：对话和余额都会自动用上
+[Environment]::SetEnvironmentVariable('DEEPSEEK_API_KEY','sk-你的key','User')
+#    B. 跑一次 DSH 的界面在里面登录，它会写 ~/.dsh/.credentials.yaml
+dsh tui
+
+# 3. 装鲸鱼娘并验证
+npm i -g whale-chan
+whalechan --once "你好"
+```
+
+> ⚠️ **`dsh` 没有 `login` 子命令**，别去找。登录是在 DSH 的 app 里做的（`dsh tui` / `dsh web`）。
+
+**环境要求**：Node.js ≥ 18（实测 24）+ 一个已登录的 `dsh`。
+
+### 找不到 dsh 时
+
+她会打印「找不到可用的 dsh 后端，先用 `--demo` 看看界面」。查找顺序（`src/agent.mjs` 的 `resolveDsh()`）：
+环境变量 **`DSH_BIN`** → `PATH` 里的 `dsh` → 兜底裸 `dsh`。前两个都配不上就设 `DSH_BIN`：
+
+```powershell
+[Environment]::SetEnvironmentVariable('DSH_BIN','C:\Users\你\AppData\Roaming\npm\node_modules\@deepseek-ai\dsh\lib\bin.js','User')
+```
+
+### 五个坑
+
+| # | 症状 | 解法 |
+| --- | --- | --- |
+| 1 | 启动即崩 | Node 升到 ≥ 18 |
+| 2 | 「找不到可用的 dsh 后端」 | 装 dsh，或设 `DSH_BIN` |
+| 3 | **能聊天，但什么都不能做** | 权限没给到，见下 |
+| 4 | 报未知选项 | profile 传错，默认 `headless`，`WHALE_PROFILE` 可覆盖 |
+| 5 | 余额显示的是别人的数 | 新机器登了另一个账号（峰谷/价格是本地算的，不受影响） |
+
+**第 3 条最阴** —— 她不报错，只是一让她看文件、跑命令就卡住。因为 `dsh headless`
+**没有交互审批通道**，只有 `danger-full-access` 才会把审批设成 `never`：
+
+```powershell
+whalechan --permission danger-full-access      # 或者 $env:DSH_PERMISSION_MODE = 'danger-full-access'
+```
+
+（`whalechan` 默认已经替你注入了这一条。）
+
+### 想让她记得你
+
+记忆在 `~/.dsh/whale-chan/`，**不会跟着你走**。三招：
+
+| 招 | 做法 |
+| --- | --- |
+| 手动拷 | 把 `形象卡.md` 复制到新机器的 `~/.dsh/whale-chan/` |
+| **放项目里（推荐）** | `形象卡.md` 放进项目根 —— 优先级比用户目录**高**，能跟着 git 走 |
+| 云盘共享 | 设 `WHALE_MEMORY_DIR` 指向同步盘（⚠️ 无锁；建议把 `state.json` 排除） |
+
+> 记忆目录解析顺序：`WHALE_MEMORY_DIR` → `$DSH_HOME/whale-chan` → `~/.dsh/whale-chan`。
+
+> ⚠️ **别直接把 `~/.dsh/.credentials.yaml` 拷过去。** 里面那个 `browser-session` 授权
+> 可能绑设备（同目录有个 `.anonymous-user-id`），**走环境变量那条路更可靠**。
+
+细节和原理见 [`开发文档.md`](开发文档.md) §11。
 
 ---
 
